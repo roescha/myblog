@@ -7,9 +7,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.endsWith;
-import myplaces.core.entities.BlogEntry;
-import myplaces.core.services.BlogEntryService;
-import myplaces.rest.mvc.BlogEntryController;
+import myblog.core.models.entities.BlogEntry;
+import myblog.core.services.BlogEntryService;
+import myblog.rest.mvc.BlogEntryController;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public class BlogEntryControllerTest {
 		BlogEntry entry = new BlogEntry();
 		entry.setId(1L);
 		entry.setTitle("Test Title");
-		when(service.find(1L)).thenReturn(entry);
+		when(service.findBlogEntry(1L)).thenReturn(entry);
 		mockMvc.perform(get("/rest/blog-entries/1"))
 		.andDo(print())
 		.andExpect(jsonPath("$.title", is(entry.getTitle())))
@@ -51,7 +51,7 @@ public class BlogEntryControllerTest {
 	
 	@Test
 	public void  getNonExistingBlogEntry() throws Exception{
-		when(service.find(1L)).thenReturn(null);
+		when(service.findBlogEntry(1L)).thenReturn(null);
 		mockMvc.perform(get("/rest/blog-entries/1"))
 		.andExpect(status().isNotFound());
 		

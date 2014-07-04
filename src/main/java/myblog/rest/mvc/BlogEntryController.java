@@ -1,9 +1,9 @@
-package myplaces.rest.mvc;
+package myblog.rest.mvc;
 
-import myplaces.core.entities.BlogEntry;
-import myplaces.core.services.BlogEntryService;
-import myplaces.rest.resources.BlogEntryResource;
-import myplaces.rest.resources.asm.BlogEntryResourceAssembler;
+import myblog.core.models.entities.BlogEntry;
+import myblog.core.services.BlogEntryService;
+import myblog.rest.resources.BlogEntryResource;
+import myblog.rest.resources.asm.BlogEntryResourceAsm;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +26,9 @@ public class BlogEntryController {
 
 	@RequestMapping(value = "/{blogEntryId}", method = RequestMethod.GET)
 	public ResponseEntity<BlogEntryResource> getBlogEntry(@PathVariable Long blogEntryId) {
-		BlogEntry entry = service.find(blogEntryId);
+		BlogEntry entry = service.findBlogEntry(blogEntryId);
 		if (entry != null){
-			BlogEntryResource res = new BlogEntryResourceAssembler().toResource(entry);
+			BlogEntryResource res = new BlogEntryResourceAsm().toResource(entry);
 			return new ResponseEntity<BlogEntryResource>(res, HttpStatus.OK);
 		}else{
 			return new ResponseEntity<BlogEntryResource>(HttpStatus.NOT_FOUND);

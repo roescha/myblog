@@ -1,16 +1,16 @@
-package myplaces.rest.resources.asm;
+package myblog.rest.resources.asm;
 
 import static  org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
-import myplaces.core.entities.BlogEntry;
-import myplaces.rest.mvc.BlogEntryController;
-import myplaces.rest.resources.BlogEntryResource;
+import myblog.core.models.entities.BlogEntry;
+import myblog.rest.mvc.BlogEntryController;
+import myblog.rest.resources.BlogEntryResource;
 
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 
-public class BlogEntryResourceAssembler extends ResourceAssemblerSupport<BlogEntry, BlogEntryResource> {
+public class BlogEntryResourceAsm extends ResourceAssemblerSupport<BlogEntry, BlogEntryResource> {
 	
-	public BlogEntryResourceAssembler(){
+	public BlogEntryResourceAsm(){
 		super(BlogEntryController.class, BlogEntryResource.class);
 	}
 
