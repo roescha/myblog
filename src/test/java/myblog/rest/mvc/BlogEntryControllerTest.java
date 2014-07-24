@@ -29,101 +29,100 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 
-@RunWith(MockitoJUnitRunner.class)
 public class BlogEntryControllerTest {
-	@InjectMocks
-    private BlogEntryController controller;
+  @InjectMocks
+  private BlogEntryController controller;
 
-    @Mock
-    private BlogEntryService service;
+  @Mock
+  private BlogEntryService service;
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @Before
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
+  @Before
+  public void setup() {
+      MockitoAnnotations.initMocks(this);
 
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
-    }
+      mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+  }
 
-    @Test
-    public void getExistingBlogEntry() throws Exception {
-        BlogEntry entry = new BlogEntry();
-        entry.setId(1L);
-        entry.setTitle("Test Title");
+  @Test
+  public void getExistingBlogEntry() throws Exception {
+      BlogEntry entry = new BlogEntry();
+      entry.setId(1L);
+      entry.setTitle("Test Title");
 
-        Blog blog = new Blog();
-        blog.setId(1L);
+      Blog blog = new Blog();
+      blog.setId(1L);
 
-        entry.setBlog(blog);
+      entry.setBlog(blog);
 
-        when(service.findBlogEntry(1L)).thenReturn(entry);
+      when(service.findBlogEntry(1L)).thenReturn(entry);
 
-        mockMvc.perform(get("/rest/blog-entries/1"))
-                .andExpect(jsonPath("$.title", is(entry.getTitle())))
-                .andExpect(jsonPath("$.links[*].href",
-                        hasItems(endsWith("/blogs/1"), endsWith("/blog-entries/1"))))
-                .andExpect(jsonPath("$.links[*].rel",
-                        hasItems(is("self"), is("blog"))))
-                .andExpect(status().isOk());
-    }
+      mockMvc.perform(get("/rest/blog-entries/1"))
+              .andExpect(jsonPath("$.title", is(entry.getTitle())))
+              .andExpect(jsonPath("$.links[*].href",
+                      hasItems(endsWith("/blogs/1"), endsWith("/blog-entries/1"))))
+              .andExpect(jsonPath("$.links[*].rel",
+                      hasItems(is("self"), is("blog"))))
+              .andExpect(status().isOk());
+  }
 
-    @Test
-    public void getNonExistingBlogEntry() throws Exception {
-        when(service.findBlogEntry(1L)).thenReturn(null);
+  @Test
+  public void getNonExistingBlogEntry() throws Exception {
+      when(service.findBlogEntry(1L)).thenReturn(null);
 
-        mockMvc.perform(get("/rest/blog-entries/1"))
-           .andExpect(status().isNotFound());
-    }
+      mockMvc.perform(get("/rest/blog-entries/1"))
+         .andExpect(status().isNotFound());
+  }
 
 
-    @Test
-    public void deleteExistingBlogEntry() throws Exception {
-        BlogEntry deletedBlogEntry = new BlogEntry();
-        deletedBlogEntry.setId(1L);
-        deletedBlogEntry.setTitle("Test Title");
+  @Test
+  public void deleteExistingBlogEntry() throws Exception {
+      BlogEntry deletedBlogEntry = new BlogEntry();
+      deletedBlogEntry.setId(1L);
+      deletedBlogEntry.setTitle("Test Title");
 
-        when(service.deleteBlogEntry(1L)).thenReturn(deletedBlogEntry);
+      when(service.deleteBlogEntry(1L)).thenReturn(deletedBlogEntry);
 
-        mockMvc.perform(delete("/rest/blog-entries/1"))
-                .andExpect(jsonPath("$.title", is(deletedBlogEntry.getTitle())))
-                .andExpect(jsonPath("$.links[*].href", hasItem(endsWith("/blog-entries/1"))))
-                .andExpect(status().isOk());
-    }
+      mockMvc.perform(delete("/rest/blog-entries/1"))
+              .andExpect(jsonPath("$.title", is(deletedBlogEntry.getTitle())))
+              .andExpect(jsonPath("$.links[*].href", hasItem(endsWith("/blog-entries/1"))))
+              .andExpect(status().isOk());
+  }
 
-    @Test
-    public void deleteNonExistingBlogEntry() throws Exception {
-        when(service.deleteBlogEntry(1L)).thenReturn(null);
+  @Test
+  public void deleteNonExistingBlogEntry() throws Exception {
+      when(service.deleteBlogEntry(1L)).thenReturn(null);
 
-        mockMvc.perform(delete("/rest/blog-entries/1"))
-                .andExpect(status().isNotFound());
-    }
+      mockMvc.perform(delete("/rest/blog-entries/1"))
+              .andExpect(status().isNotFound());
+  }
 
-    @Test
-    public void updateExistingBlogEntry() throws Exception {
-        BlogEntry updatedEntry = new BlogEntry();
-        updatedEntry.setId(1L);
-        updatedEntry.setTitle("Test Title");
+  @Test
+  public void updateExistingBlogEntry() throws Exception {
+      BlogEntry updatedEntry = new BlogEntry();
+      updatedEntry.setId(1L);
+      updatedEntry.setTitle("Test Title");
 
-        when(service.updateBlogEntry(eq(1L), any(BlogEntry.class)))
-                .thenReturn(updatedEntry);
+      when(service.updateBlogEntry(eq(1L), any(BlogEntry.class)))
+              .thenReturn(updatedEntry);
 
-        mockMvc.perform(put("/rest/blog-entries/1")
-                .content("{\"title\":\"Test Title\"}")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.title", is(updatedEntry.getTitle())))
-                .andExpect(jsonPath("$.links[*].href", hasItem(endsWith("/blog-entries/1"))))
-                .andExpect(status().isOk());
-    }
+      mockMvc.perform(put("/rest/blog-entries/1")
+              .content("{\"title\":\"Test Title\"}")
+              .contentType(MediaType.APPLICATION_JSON))
+              .andExpect(jsonPath("$.title", is(updatedEntry.getTitle())))
+              .andExpect(jsonPath("$.links[*].href", hasItem(endsWith("/blog-entries/1"))))
+              .andExpect(status().isOk());
+  }
 
-    @Test
-    public void updateNonExistingBlogEntry() throws Exception {
-        when(service.updateBlogEntry(eq(1L), any(BlogEntry.class)))
-                .thenReturn(null);
+  @Test
+  public void updateNonExistingBlogEntry() throws Exception {
+      when(service.updateBlogEntry(eq(1L), any(BlogEntry.class)))
+              .thenReturn(null);
 
-        mockMvc.perform(put("/rest/blog-entries/1")
-                .content("{\"title\":\"Test Title\"}")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-    }
+      mockMvc.perform(put("/rest/blog-entries/1")
+              .content("{\"title\":\"Test Title\"}")
+              .contentType(MediaType.APPLICATION_JSON))
+              .andExpect(status().isNotFound());
+  }
 }

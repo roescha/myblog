@@ -1,32 +1,53 @@
 package myblog.core.models.entities;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+
+@Entity
 public class BlogEntry {
-	private Long id;
-	private String title;
-	private Blog blog;
+	 @Id
+   @GeneratedValue
+   private Long id;
 
-	public String getTitle() {
-		return title;
-	}
+   private String title;
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
+   private String content;
 
-	public Long getId() {
-		return id;
-	}
+   @ManyToOne
+   private Blog blog;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+   public String getTitle() {
+       return title;
+   }
 
-	public Blog getBlog() {
-		return blog;
-	}
+   public void setTitle(String title) {
+       this.title = title;
+   }
 
-	public void setBlog(Blog blog) {
-		this.blog = blog;
-	}
+   public Long getId() {
+       return id;
+   }
+
+   public void setId(Long id) {
+       this.id = id;
+   }
+
+   public Blog getBlog() {
+       return blog;
+   }
+
+   public void setBlog(Blog blog) {
+       this.blog = blog;
+   }
+
+   public String getContent() {
+       return content;
+   }
+
+   public void setContent(String content) {
+       this.content = content;
+   }
 
 }

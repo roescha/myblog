@@ -1,12 +1,15 @@
 package myblog.core.repositories;
 
+import java.util.List;
+
 import myblog.core.models.entities.Account;
-import myblog.core.models.entities.Blog;
-
-
 
 public interface AccountRepo {
-    public Account findAccount(Long id);
-    public Account createAccount(Account data);
-    public Blog createBlog(Long accountId, Blog data);
+	public List<Account> findAllAccounts();
+
+	public Account findAccount(Long id);
+
+	public Account findAccountByName(String name);
+
+	public Account createAccount(Account data);
 }

@@ -6,8 +6,13 @@ import java.util.List;
 import myblog.core.models.entities.BlogEntry;
 
 public class BlogEntryList {
-	private List<BlogEntry> entries = new ArrayList<>();
+	private List<BlogEntry> entries = new ArrayList<BlogEntry>();
 	private Long blogId;
+
+	public BlogEntryList(Long blogId, List<BlogEntry> entries) {
+		this.blogId = blogId;
+		this.entries = entries;
+	}
 
 	public List<BlogEntry> getEntries() {
 		return entries;
@@ -24,5 +29,4 @@ public class BlogEntryList {
 	public void setBlogId(Long blogId) {
 		this.blogId = blogId;
 	}
-
 }

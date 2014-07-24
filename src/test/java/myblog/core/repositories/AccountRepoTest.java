@@ -11,7 +11,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:spring/business-config.xml")
@@ -37,6 +37,9 @@ public class AccountRepoTest {
     @Transactional
     public void testFind()
     {
-        assertNotNull(repo.findAccount(account.getId()));
+        Account account = repo.findAccount(this.account.getId());
+        assertNotNull(account);
+        assertEquals(account.getName(), "name");
+        assertEquals(account.getPassword(), "password");
     }
 }

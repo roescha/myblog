@@ -1,32 +1,42 @@
 package myblog.core.models.entities;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
+
+@Entity
 public class Blog {
-	private Long id;
-	private String title;
-	private Account owner;
+    @Id
+    @GeneratedValue
+    private Long id;
 
-	public Long getId() {
-		return id;
-	}
+    private String title;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    @OneToOne
+    private Account owner;
 
-	public String getTitle() {
-		return title;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public Account getOwner() {
-		return owner;
-	}
+    public String getTitle() {
+        return title;
+    }
 
-	public void setOwner(Account owner) {
-		this.owner = owner;
-	}
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
+    public Account getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Account owner) {
+        this.owner = owner;
+    }
 }

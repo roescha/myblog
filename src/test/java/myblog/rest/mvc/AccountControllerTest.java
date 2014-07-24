@@ -2,7 +2,9 @@ package myblog.rest.mvc;
 
 
 import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
@@ -16,12 +18,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import myblog.core.models.entities.Account;
 import myblog.core.models.entities.Blog;
 import myblog.core.services.AccountService;
 import myblog.core.services.exceptions.AccountDoesNotExistException;
 import myblog.core.services.exceptions.AccountExistsException;
 import myblog.core.services.exceptions.BlogExistsException;
+import myblog.core.services.util.AccountList;
+import myblog.core.services.util.BlogList;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -33,125 +41,224 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-/**
- * Created by Chris on 6/28/14.
- */
 public class AccountControllerTest {
-    @InjectMocks
-    private AccountController controller;
+  @InjectMocks
+  private AccountController controller;
 
-    @Mock
-    private AccountService service;
+  @Mock
+  private AccountService service;
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    private ArgumentCaptor<Account> accountCaptor;
+  private ArgumentCaptor<Account> accountCaptor;
 
-    @Before
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
+  @Before
+  public void setup() {
+      MockitoAnnotations.initMocks(this);
 
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+      mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
-        accountCaptor = ArgumentCaptor.forClass(Account.class);
-    }
+      accountCaptor = ArgumentCaptor.forClass(Account.class);
+  }
 
-    @Test
-    public void createBlogExistingAccount() throws Exception {
-        Blog createdBlog = new Blog();
-        createdBlog.setId(1L);
-        createdBlog.setTitle("Test Title");
+  @Test
+  public void findAllBlogsForAccount() throws Exception {
+      List<Blog> list = new ArrayList<Blog>();
 
-        when(service.createBlog(eq(1L), any(Blog.class))).thenReturn(createdBlog);
+      Blog blogA = new Blog();
+      blogA.setId(1L);
+      blogA.setTitle("Title A");
+      list.add(blogA);
 
-        mockMvc.perform(post("/rest/accounts/1/blogs")
-                .content("{\"title\":\"Test Title\"}")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(jsonPath("$.title", is("Test Title")))
-                .andExpect(jsonPath("$.links[*].href", hasItem(endsWith("/blogs/1"))))
-                .andExpect(header().string("Location", endsWith("/blogs/1")))
-                .andExpect(status().isCreated());
-    }
+      Blog blogB = new Blog();
+      blogB.setId(2L);
+      blogB.setTitle("Title B");
+      list.add(blogB);
 
-    @Test
-    public void createBlogNonExistingAccount() throws Exception {
-        when(service.createBlog(eq(1L), any(Blog.class))).thenThrow(new AccountDoesNotExistException());
+      BlogList blogList = new BlogList(list);
 
-        mockMvc.perform(post("/rest/accounts/1/blogs")
-                .content("{\"title\":\"Test Title\"}")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
+      when(service.findBlogsByAccount(1L)).thenReturn(blogList);
 
-    @Test
-    public void createBlogExistingBlogName() throws Exception {
-        when(service.createBlog(eq(1L), any(Blog.class))).thenThrow(new BlogExistsException());
+      mockMvc.perform(get("/rest/accounts/1/blogs"))
+              .andExpect(jsonPath("$.blogs[*].title",
+                      hasItems(endsWith("Title A"), endsWith("Title B"))))
+              .andExpect(status().isOk());
+  }
 
-        mockMvc.perform(post("/rest/accounts/1/blogs")
-                .content("{\"title\":\"Test Title\"}")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isConflict());
-    }
+  @Test
+  public void findAllBlogsForNonExistingAccount() throws Exception {
+      List<Blog> list = new ArrayList<Blog>();
 
-    @Test
-    public void createAccountNonExistingUsername() throws Exception {
-        Account createdAccount = new Account();
-        createdAccount.setId(1L);
-        createdAccount.setPassword("test");
-        createdAccount.setName("test");
+      Blog blogA = new Blog();
+      blogA.setId(1L);
+      blogA.setTitle("Title A");
+      list.add(blogA);
 
-        when(service.createAccount(any(Account.class))).thenReturn(createdAccount);
+      Blog blogB = new Blog();
+      blogB.setId(2L);
+      blogB.setTitle("Title B");
+      list.add(blogB);
 
-        mockMvc.perform(post("/rest/accounts")
-                .content("{\"name\":\"test\",\"password\":\"test\"}")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(header().string("Location", org.hamcrest.Matchers.endsWith("/rest/accounts/1")))
-                .andExpect(jsonPath("$.name", is(createdAccount.getName())))
-                .andExpect(status().isCreated());
+      BlogList blogList = new BlogList(list);
 
-        verify(service).createAccount(accountCaptor.capture());
+      when(service.findBlogsByAccount(1L)).thenThrow(new AccountDoesNotExistException());
 
-        String password = accountCaptor.getValue().getPassword();
-        assertEquals("test", password);
-    }
+      mockMvc.perform(get("/rest/accounts/1/blogs"))
+              .andExpect(status().isNotFound());
+  }
 
-    @Test
-    public void createAccountExistingUsername() throws Exception {
-        Account createdAccount = new Account();
-        createdAccount.setId(1L);
-        createdAccount.setPassword("test");
-        createdAccount.setName("test");
 
-        when(service.createAccount(any(Account.class))).thenThrow(new AccountExistsException());
+  @Test
+  public void createBlogExistingAccount() throws Exception {
+      Blog createdBlog = new Blog();
+      createdBlog.setId(1L);
+      createdBlog.setTitle("Test Title");
 
-        mockMvc.perform(post("/rest/accounts")
-                .content("{\"name\":\"test\",\"password\":\"test\"}")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isConflict());
-    }
+      when(service.createBlog(eq(1L), any(Blog.class))).thenReturn(createdBlog);
 
-    @Test
-    public void getExistingAccount() throws Exception {
-        Account foundAccount = new Account();
-        foundAccount.setId(1L);
-        foundAccount.setPassword("test");
-        foundAccount.setName("test");
+      mockMvc.perform(post("/rest/accounts/1/blogs")
+              .content("{\"title\":\"Test Title\"}")
+              .contentType(MediaType.APPLICATION_JSON))
+              .andDo(print())
+              .andExpect(jsonPath("$.title", is("Test Title")))
+              .andExpect(jsonPath("$.links[*].href", hasItem(endsWith("/blogs/1"))))
+              .andExpect(header().string("Location", endsWith("/blogs/1")))
+              .andExpect(status().isCreated());
+  }
 
-        when(service.findAccount(1L)).thenReturn(foundAccount);
+  @Test
+  public void createBlogNonExistingAccount() throws Exception {
+      when(service.createBlog(eq(1L), any(Blog.class))).thenThrow(new AccountDoesNotExistException());
 
-        mockMvc.perform(get("/rest/accounts/1"))
-                .andDo(print())
-                .andExpect(jsonPath("$.password", is(nullValue())))
-                .andExpect(jsonPath("$.name", is(foundAccount.getName())))
-                .andExpect(status().isOk());
-    }
+      mockMvc.perform(post("/rest/accounts/1/blogs")
+              .content("{\"title\":\"Test Title\"}")
+              .contentType(MediaType.APPLICATION_JSON))
+              .andExpect(status().isNotFound());
+  }
 
-    @Test
-    public void getNonExistingAccount() throws Exception {
-        when(service.findAccount(1L)).thenReturn(null);
+  @Test
+  public void createBlogExistingBlogName() throws Exception {
+      when(service.createBlog(eq(1L), any(Blog.class))).thenThrow(new BlogExistsException());
 
-        mockMvc.perform(get("/rest/accounts/1"))
-                .andExpect(status().isNotFound());
-    }
+      mockMvc.perform(post("/rest/accounts/1/blogs")
+              .content("{\"title\":\"Test Title\"}")
+              .contentType(MediaType.APPLICATION_JSON))
+              .andExpect(status().isConflict());
+  }
+
+  @Test
+  public void createAccountNonExistingUsername() throws Exception {
+      Account createdAccount = new Account();
+      createdAccount.setId(1L);
+      createdAccount.setPassword("test");
+      createdAccount.setName("test");
+
+      when(service.createAccount(any(Account.class))).thenReturn(createdAccount);
+
+      mockMvc.perform(post("/rest/accounts")
+              .content("{\"name\":\"test\",\"password\":\"test\"}")
+              .contentType(MediaType.APPLICATION_JSON))
+              .andExpect(header().string("Location", endsWith("/rest/accounts/1")))
+              .andExpect(jsonPath("$.name", is(createdAccount.getName())))
+              .andExpect(status().isCreated());
+
+      verify(service).createAccount(accountCaptor.capture());
+
+      String password = accountCaptor.getValue().getPassword();
+      assertEquals("test", password);
+  }
+
+  @Test
+  public void createAccountExistingUsername() throws Exception {
+      Account createdAccount = new Account();
+      createdAccount.setId(1L);
+      createdAccount.setPassword("test");
+      createdAccount.setName("test");
+
+      when(service.createAccount(any(Account.class))).thenThrow(new AccountExistsException());
+
+      mockMvc.perform(post("/rest/accounts")
+              .content("{\"name\":\"test\",\"password\":\"test\"}")
+              .contentType(MediaType.APPLICATION_JSON))
+              .andExpect(status().isConflict());
+  }
+
+  @Test
+  public void getExistingAccount() throws Exception {
+      Account foundAccount = new Account();
+      foundAccount.setId(1L);
+      foundAccount.setPassword("test");
+      foundAccount.setName("test");
+
+      when(service.findAccount(1L)).thenReturn(foundAccount);
+
+      mockMvc.perform(get("/rest/accounts/1"))
+              .andDo(print())
+              .andExpect(jsonPath("$.password", is(nullValue())))
+              .andExpect(jsonPath("$.name", is(foundAccount.getName())))
+              .andExpect(jsonPath("$.links[*].rel",
+                      hasItems(endsWith("self"), endsWith("blogs"))))
+                      .andExpect(status().isOk());
+  }
+
+  @Test
+  public void getNonExistingAccount() throws Exception {
+      when(service.findAccount(1L)).thenReturn(null);
+
+      mockMvc.perform(get("/rest/accounts/1"))
+              .andExpect(status().isNotFound());
+  }
+
+  @Test
+  public void findAllAccounts() throws Exception {
+      List<Account> accounts = new ArrayList<Account>();
+
+      Account accountA = new Account();
+      accountA.setId(1L);
+      accountA.setPassword("accountA");
+      accountA.setName("accountA");
+      accounts.add(accountA);
+
+      Account accountB = new Account();
+      accountB.setId(1L);
+      accountB.setPassword("accountB");
+      accountB.setName("accountB");
+      accounts.add(accountB);
+
+      AccountList accountList = new AccountList(accounts);
+
+      when(service.findAllAccounts()).thenReturn(accountList);
+
+      mockMvc.perform(get("/rest/accounts"))
+              .andExpect(jsonPath("$.accounts[*].name",
+                      hasItems(endsWith("accountA"), endsWith("accountB"))))
+              .andExpect(status().isOk());
+  }
+
+
+  @Test
+  public void findAccountsByName() throws Exception {
+      List<Account> accounts = new ArrayList<Account>();
+
+      Account accountA = new Account();
+      accountA.setId(1L);
+      accountA.setPassword("accountA");
+      accountA.setName("accountA");
+      accounts.add(accountA);
+
+      Account accountB = new Account();
+      accountB.setId(1L);
+      accountB.setPassword("accountB");
+      accountB.setName("accountB");
+      accounts.add(accountB);
+
+      AccountList accountList = new AccountList(accounts);
+
+      when(service.findAllAccounts()).thenReturn(accountList);
+
+      mockMvc.perform(get("/rest/accounts").param("name", "accountA"))
+              .andExpect(jsonPath("$.accounts[*].name",
+                      everyItem(endsWith("accountA"))))
+              .andExpect(status().isOk());
+  }
 }
